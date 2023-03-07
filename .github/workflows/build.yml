@@ -9,14 +9,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Install Docker
+        uses: docker/setup-docker@v1
 
-      - name: Install dependencies
+      - name: Build Docker image
         run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y libc6-dev-i386
+          docker build -t centos4.8-glibc2.3.4 .
 
-      - name: Build C code
-        run: gcc -m32 -o exploit exploit.c
+      - name: Compile C code
+        run: |
+          docker run --rm -v ${PWD}:/app centos4.8-glibc2.3.4 /bin/bash -c "cd /app && gcc -m32 -o exploit exploit.c"
