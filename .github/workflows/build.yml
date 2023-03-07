@@ -18,4 +18,4 @@ jobs:
         run: cd ${{github.workspace}}
 
       - name: Build C code
-        run: gcc -m32 -o exploit exploit.c
+        run: gcc -m32 -o exploit ${{github.workspace}}/exploit.c
