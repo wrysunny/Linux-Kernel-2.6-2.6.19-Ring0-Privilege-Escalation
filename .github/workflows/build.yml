@@ -8,22 +8,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      centos-4.8:
-        image: xfers/centos-4.8-i386
-        ports:
-          - 5000:5000
-        options: --privileged
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libc6-dev-i386
+        run: sudo apt-get update && sudo apt-get install -y build-essential gcc-multilib
 
-      - name: Compile C code
+      - name: Download and extract glibc 2.3.4
         run: |
-          docker run --rm -v $(pwd):/workspace -w /workspace -p 5000:5000 xfers/centos-4.8-i386 gcc -m32 -o exploit exploit.c
+          wget https://ftp.gnu.org/gnu/glibc/glibc-2.3.4.tar.gz
+          tar zxvf glibc-2.3.4.tar.gz
+
+      - name: Build and install glibc 2.3.4
+        run: |
+          cd glibc-2.3.4
+          mkdir build
+          cd build
+          ../configure --prefix=/usr/local/glibc-2.3.4
+          make
+          sudo make install
+
+      - name: Build C code
+        run: |
+          export LD_LIBRARY_PATH=/usr/local/glibc-2.3.4/lib
+          gcc -m32 -o exploit exploit.c
