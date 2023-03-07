@@ -13,6 +13,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libc6-dev-i386
+      
+      - name: Change working directory
+        run: cd ${{github.workspace}}
 
       - name: Build C code
-        run: ls && pwd && gcc -m32 -o exploit exploit.c
+        run: gcc -m32 -o exploit exploit.c
