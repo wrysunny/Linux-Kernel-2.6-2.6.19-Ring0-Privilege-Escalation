@@ -7,15 +7,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        compiler: [gcc]
+        architecture: [x86]
 
     steps:
-      - name: Install Docker
-        uses: docker/setup-docker@v1
-
-      - name: Build Docker image
+      - name: Install dependencies
         run: |
-          docker build -t centos4.8-glibc2.3.4 .
-
-      - name: Compile C code
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib
+      - name: Install glibc-2.3.4
         run: |
-          docker run --rm -v ${PWD}:/app centos4.8-glibc2.3.4 /bin/bash -c "cd /app && gcc -m32 -o exploit exploit.c"
+          wget https://www.gnu.org/software/libc/releases/glibc-2.3.4.tar.gz
+          tar -zxvf glibc-2.3.4.tar.gz
+          cd glibc-2.3.4
+          mkdir build
+          cd build
+          ../configure --prefix=/usr/local/glibc-2.3.4 --enable-add-ons
+          make
+          sudo make install
+      - name: Build C code
+        run: |
+          export LD_LIBRARY_PATH=/usr/local/glibc-2.3.4/lib:$LD_LIBRARY_PATH
+          gcc -m32 -o exploit exploit.c
